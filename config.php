@@ -42,7 +42,7 @@ class SlackPluginConfig extends PluginConfig {
         $out = [];
         foreach ($model::objects()->order_by('priority_urgency')->all() as $p) {
             $out[$p->getId()] = sprintf('%s (P%d)',
-                ucfirst($p->priority), $p->priority_urgency);
+                ucfirst($p->priority), $p->priority_urgency-1);
         }
         return $out;
     }
