@@ -38,6 +38,7 @@ class SlackPlugin extends Plugin {
         
         if($updateTypes == 'both' || $updateTypes == 'updatesOnly' || empty($updateTypes)) {
             Signal::connect('threadentry.created', array($this, 'onTicketUpdated'));
+            Signal::connect('ticket.updated',      array($this, 'onTicketUpdated'));
         }
         // Tasks? Signal::connect('task.created',array($this,'onTaskCreated'));
     }
