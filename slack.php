@@ -141,6 +141,16 @@ class SlackPlugin extends Plugin {
             $ost->logError('Slack Plugin not configured', 'You need to read the Readme and configure a webhook URL before using this.');
         }
 
+        /* Fancy colours based on urgency ----------------------------- */
+        $urg = ($ticket->getPriorityUrgency() ?? 1) - 1; // 0-based
+        $colour_map = ['#e01e5a', '#e38200', '#2eb67d', '#439fe0']; // red, orange, green, blue
+        $colour = $colour_map[$urg] ?? '#2eb67d';
+
+        // Change the colour to Fuschia if ticket is overdue
+        if ($ticket->isOverdue()) {
+            $payload['attachments'][0]['colour'] = '#ff00ff';
+        }
+        
         // --- Priority whitelist filter ------------------------------------
         $allowed = $this->getConfig(self::$pluginInstance)->get('priority-whitelist');
         /*  If the admin selected one or more priorities and the current
@@ -167,24 +177,65 @@ class SlackPlugin extends Plugin {
         $custom_vars       = [
             'slack_safe_message' => $this->format_text($body),
         ];
+        // Add our custom var
+        $custom_vars       = [
+            'slack_safe_message' => $this->format_text($body),
+        ];
+        // priority-urgency minus 1 so Emergency = P0
+        $custom_vars['ticket.priority_urgency_minus1'] =
+            ($ticket->getPriorityUrgency() ?? 1) - 1;
+        
         $formatted_message = $ticket->replaceVars($template, $custom_vars);
 
-        // Build the payload with the formatted data:
-        $payload['attachments'][0] = [
-            'pretext'     => $heading,
-            'fallback'    => $heading,
-            'color'       => $colour,
-            // 'author'      => $ticket->getOwner(),
-            //  'author_link' => $cfg->getUrl() . 'scp/users.php?id=' . $ticket->getOwnerId(),
-            // 'author_icon' => $this->get_gravatar($ticket->getEmail()),
-            'title'       => $ticket->getSubject(),
-            'title_link'  => $cfg->getUrl() . 'scp/tickets.php?id=' . $ticket->getId(),
-            'ts'          => time(),
-            'footer'      => 'via osTicket Slack Plugin',
-            'footer_icon' => 'https://platform.slack-edge.com/img/default_application_icon.png',
-            'text'        => $formatted_message,
-            'mrkdwn_in'   => ["text"]
+        // Build modern Block Kit payload --------------------------
+        $blocks = [
+          [
+            'type' => 'section',
+            'text' => [
+              'type' => 'mrkdwn',
+              // 🔴🟠🟢 show coloured emoji per urgency
+              'text' => sprintf(
+                '*%s P%d* – <%s|%s>',
+                $ticket->getPriority(),
+                $ticket->getPriorityUrgency()-1,
+                $cfg->getUrl().'scp/tickets.php?id='.$ticket->getId(),
+                $ticket->getSubject()
+              )
+            ]
+          ],
+          [
+            'type' => 'context',
+            'elements' => [[
+              'type' => 'mrkdwn',
+              'text' => sprintf('From *%s* · %s',
+                $ticket->getName()->getFull(),
+                $ticket->getDept())
+            ]]
+          ],
+          [
+            'type' => 'section',
+            'text' => [
+              'type' => 'mrkdwn',
+              'text' => '```'.mb_substr($body,0,500).'```'
+            ]
+          ],
+          [
+            'type' => 'actions',
+            'elements' => [[
+              'type' => 'button',
+              'text' => ['type'=>'plain_text','text'=>'View Ticket'],
+              'url'  => $cfg->getUrl().'scp/tickets.php?id='.$ticket->getId()
+            ]]
+          ]
         ];
+        
+        // // Build the payload with the formatted data:
+        $payload = [
+          'blocks' => $blocks,
+          // keep legacy colour so old mobile clients still show a stripe
+          'attachments' => [[ 'color' => $colour ]]
+        ];
+
         // Add a field for tasks if there are open ones
         if ($ticket->getNumOpenTasks()) {
             $payload['attachments'][0]['fields'][] = [
@@ -192,10 +243,6 @@ class SlackPlugin extends Plugin {
                 'value' => $ticket->getNumOpenTasks(),
                 'short' => TRUE,
             ];
-        }
-        // Change the colour to Fuschia if ticket is overdue
-        if ($ticket->isOverdue()) {
-            $payload['attachments'][0]['colour'] = '#ff00ff';
         }
 
         // Format the payload:
