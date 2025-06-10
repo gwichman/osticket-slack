@@ -28,6 +28,21 @@ class SlackPluginConfig extends PluginConfig {
         return TRUE;
     }
 
+    /**
+     * Return an array like [id => "Emergency (P0)", …] for the ChoiceField
+     */
+    private function getPriorityChoices() {
+        $out = array();
+        // TicketPriority is a core class – no extra include needed
+        foreach (TicketPriority::objects()
+                 ->order_by('priority_urgency')
+                 ->all() as $p) {
+            $out[$p->getId()] = sprintf('%s (P%d)',
+                ucfirst($p->priority), $p->priority_urgency);
+        }
+        return $out;
+    }
+    
     function getOptions() {
         list ($__, $_N) = self::translate();
 
@@ -60,6 +75,12 @@ class SlackPluginConfig extends PluginConfig {
                     'size'   => 30,
                     'length' => 200
                 ],
+                    ]),
+            'priority-whitelist' => new ChoiceField([
+                'label'         => $__('Notify only for these priorities'),
+                'hint'          => $__('Leave blank to notify on *all* priorities'),
+                'choices'       => $this->getPriorityChoices(),
+                'configuration' => ['multiselect' => true],
                     ]),
             'message-template'           => new TextareaField([
                 'label'         => $__('Message Template'),
