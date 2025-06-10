@@ -30,14 +30,11 @@ class SlackPluginConfig extends PluginConfig {
     }
 
     /**
-     * Return [priority_id => "Friendly Name"] for the ChoiceField
+     * Build [priority_id => "Emergency (P0)", …] for the ChoiceField
      */
     private function getPriorityChoices() {
-        // Make sure the class definition is available
-        if (!class_exists('TicketPriority')
-            && is_readable(INCLUDE_DIR . 'class.priority.php')) {
-            require_once INCLUDE_DIR . 'class.priority.php';
-        }
+        // Always make sure the definition is loaded
+        require_once INCLUDE_DIR . 'class.ticket.php';    // defines TicketPriority
 
         $out = array();
         foreach (TicketPriority::objects()
