@@ -2,7 +2,6 @@
 
 require_once INCLUDE_DIR . 'class.plugin.php';
 require_once INCLUDE_DIR . 'class.ticket.php';
-require_once INCLUDE_DIR . 'class.priority.php';
 
 class SlackPluginConfig extends PluginConfig {
 
@@ -31,11 +30,16 @@ class SlackPluginConfig extends PluginConfig {
     }
 
     /**
-     * Return an array like [id => "Emergency (P0)", …] for the ChoiceField
+     * Return [priority_id => "Friendly Name"] for the ChoiceField
      */
     private function getPriorityChoices() {
+        // Make sure the class definition is available
+        if (!class_exists('TicketPriority')
+            && is_readable(INCLUDE_DIR . 'class.priority.php')) {
+            require_once INCLUDE_DIR . 'class.priority.php';
+        }
+
         $out = array();
-        // TicketPriority is a core class – no extra include needed
         foreach (TicketPriority::objects()
                  ->order_by('priority_urgency')
                  ->all() as $p) {
