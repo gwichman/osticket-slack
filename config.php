@@ -2,7 +2,6 @@
 
 require_once INCLUDE_DIR . 'class.plugin.php';
 require_once INCLUDE_DIR . 'class.ticket.php';
-require_once INCLUDE_DIR . 'class.priority.php';
 
 class SlackPluginConfig extends PluginConfig {
 
@@ -34,10 +33,14 @@ class SlackPluginConfig extends PluginConfig {
      * Build [priority_id => "Emergency (P0)", …] for the ChoiceField
      */
     private function getPriorityChoices() {
-        $out = array();
-        foreach (TicketPriority::objects()
-                 ->order_by('priority_urgency')
-                 ->all() as $p) {
+        // Make sure the file is in; it defines class Priority
+        require_once INCLUDE_DIR . 'class.priority.php';
+
+        // Use whichever class name is actually declared
+        $model = class_exists('Priority') ? 'Priority' : 'TicketPriority';
+
+        $out = [];
+        foreach ($model::objects()->order_by('priority_urgency')->all() as $p) {
             $out[$p->getId()] = sprintf('%s (P%d)',
                 ucfirst($p->priority), $p->priority_urgency);
         }
