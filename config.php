@@ -1,6 +1,7 @@
 <?php
 
 require_once INCLUDE_DIR . 'class.plugin.php';
+require_once INCLUDE_DIR . 'class.ticket.php';
 
 class SlackPluginConfig extends PluginConfig {
 
