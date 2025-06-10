@@ -141,15 +141,15 @@ class SlackPlugin extends Plugin {
             $ost->logError('Slack Plugin not configured', 'You need to read the Readme and configure a webhook URL before using this.');
         }
 
-         // --- Priority whitelist filter ------------------------------------
-         $allowed = $this->getConfig(self::$pluginInstance)->get('priority-whitelist');
-         /*  If the admin selected one or more priorities and the current
-             ticket’s priority id isn’t in that list, bail out silently.      */
-         if (is_array($allowed) && $allowed) {
-             if (!in_array($ticket->getPriorityId(), $allowed)) {
-                 return;   // skip – not a whitelisted priority
-             }
-         }
+        // --- Priority whitelist filter ------------------------------------
+        $allowed = $this->getConfig(self::$pluginInstance)->get('priority-whitelist');
+        /*  If the admin selected one or more priorities and the current
+            ticket’s priority id isn’t in that list, bail out silently.      */
+        if (is_array($allowed) && $allowed) {
+            if (!in_array($ticket->getPriorityId(), $allowed)) {
+                return;   // skip – not a whitelisted priority
+            }
+        }
         
         // Check the subject, see if we want to filter it.
         $regex_subject_ignore = $this->getConfig(self::$pluginInstance)->get('slack-regex-subject-ignore');
