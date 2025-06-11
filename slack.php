@@ -80,44 +80,36 @@ class SlackPlugin extends Plugin {
      * @param ThreadEntry $entry
      * @return type
      */
-    function onTicketUpdated(ThreadEntry $entry) {
+    function onTicketUpdated($obj) {
         global $cfg;
-        if (!$cfg instanceof OsticketConfig) {
-            error_log("Slack plugin called too early.");
+    
+        /* --- ThreadEntry (a reply/note) --- */
+        if ($obj instanceof ThreadEntry) {
+            // Original logic unchanged
+            $ticket = $this->getTicket($obj);
+            if (!$ticket instanceof Ticket) return;
+    
+            // Skip first message (it’s actually ticket.created)
+            $first = $ticket->getMessages()[0];
+            if ($obj->getId() == $first->getId()) return;
+    
+            $plaintext = Format::html2text($obj->getBody()->getClean());
+            $heading   = sprintf('%s #%s %s',
+                __("Ticket"), $ticket->getNumber(), __("updated"));
+    
+            $this->sendToSlack($ticket, $heading, $plaintext, 'warning');
             return;
         }
-        
-        // if slack-update-types is "newOnly", then don't send this!
-        if($this->getConfig(self::$pluginInstance)->get('slack-update-types') == 'newOnly') {return;}
-        
-        if (!$entry instanceof MessageThreadEntry) {
-            // this was a reply or a system entry.. not a message from a user
-            return;
+    
+        /* --- Field-only update (our priority filter triggers this) --- */
+        if ($obj instanceof Ticket) {
+            $ticket  = $obj;
+            $heading = sprintf('%s #%s – %s *%s*',
+                __("Ticket"), $ticket->getNumber(),
+                __("priority changed to"), $ticket->getPriority()->priority);
+    
+            $this->sendToSlack($ticket, $heading, '', 'warning');
         }
-
-        // Need to fetch the ticket from the ThreadEntry
-        $ticket = $this->getTicket($entry);
-        if (!$ticket instanceof Ticket) {
-            // Admin created ticket's won't work here.
-            return;
-        }
-
-        // Check to make sure this entry isn't the first (ie: a New ticket)
-        $first_entry = $ticket->getMessages()[0];
-        if ($entry->getId() == $first_entry->getId()) {
-            return;
-        }
-        // Convert any HTML in the message into text
-        $plaintext = Format::html2text($entry->getBody()->getClean());
-
-        // Format the messages we'll send
-        $heading = sprintf('%s CONTROLSTART%sscp/tickets.php?id=%d|#%sCONTROLEND %s'
-                , __("Ticket")
-                , $cfg->getUrl()
-                , $ticket->getId()
-                , $ticket->getNumber()
-                , __("updated"));
-        $this->sendToSlack($ticket, $heading, $plaintext, 'warning');
     }
 
     /**
@@ -143,15 +135,11 @@ class SlackPlugin extends Plugin {
         }
 
         /* Fancy colours based on urgency ----------------------------- */
-        $urg = ($ticket->getPriorityUrgency() ?? 1) - 1; // 0-based
-        $colour_map = ['#e01e5a', '#e38200', '#2eb67d', '#439fe0']; // red, orange, green, blue
+        $urgency = $ticket->getPriority() ? $ticket->getPriority()->priority_urgency : 1;
+        $urg = $urgency - 1;             // 0-based for P0/P1 labels
+        $colour_map = ['#e01e5a', '#e38200', '#2eb67d', '#439fe0'];
         $colour = $colour_map[$urg] ?? '#2eb67d';
 
-        // Change the colour to Fuschia if ticket is overdue
-        if ($ticket->isOverdue()) {
-            $payload['attachments'][0]['colour'] = '#ff00ff';
-        }
-        
         // --- Priority whitelist filter ------------------------------------
         $allowed = $this->getConfig(self::$pluginInstance)->get('priority-whitelist');
         /*  If the admin selected one or more priorities and the current
@@ -172,20 +160,13 @@ class SlackPlugin extends Plugin {
 
         $heading = $this->format_text($heading);
 
-        // Pull template from config, and use that. 
-        $template          = $this->getConfig(self::$pluginInstance)->get('message-template');
-        // Add our custom var
-        $custom_vars       = [
-            'slack_safe_message' => $this->format_text($body),
-        ];
-        // Add our custom var
-        $custom_vars       = [
+        // Pull template from config, and use that.
+        $template    = $this->getConfig(self::$pluginInstance)->get('message-template');
+        $custom_vars = [
             'slack_safe_message' => $this->format_text($body),
         ];
         // priority-urgency minus 1 so Emergency = P0
-        $custom_vars['ticket.priority_urgency_minus1'] =
-            ($ticket->getPriorityUrgency() ?? 1) - 1;
-        
+        $custom_vars['ticket.priority_urgency_minus1'] = $urgency - 1;
         $formatted_message = $ticket->replaceVars($template, $custom_vars);
 
         // Build modern Block Kit payload --------------------------
@@ -195,13 +176,16 @@ class SlackPlugin extends Plugin {
             'text' => [
               'type' => 'mrkdwn',
               // 🔴🟠🟢 show coloured emoji per urgency
-              'text' => sprintf(
-                '*%s P%d* – <%s|%s>',
-                $ticket->getPriority(),
-                $ticket->getPriorityUrgency()-1,
-                $cfg->getUrl().'scp/tickets.php?id='.$ticket->getId(),
-                $ticket->getSubject()
-              )
+                'text' => sprintf(
+                    '*%s P%d* – <%s|%s>',
+                    // Priority name:
+                    $ticket->getPriority() ? ucfirst($ticket->getPriority()->priority) : 'Unknown',
+                    // P-number (0-based):
+                    $urgency - 1,
+                    // Link:
+                    $cfg->getUrl() . 'scp/tickets.php?id=' . $ticket->getId(),
+                    $ticket->getSubject()
+                )
             ]
           ],
           [
@@ -244,6 +228,11 @@ class SlackPlugin extends Plugin {
                 'value' => $ticket->getNumOpenTasks(),
                 'short' => TRUE,
             ];
+        }
+
+        // Change the colour to Fuschia if ticket is overdue
+        if ($ticket->isOverdue()) {
+            $payload['attachments'][0]['color'] = '#ff00ff';
         }
 
         // Format the payload:
