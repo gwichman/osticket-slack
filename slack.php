@@ -164,6 +164,14 @@ class SlackPlugin extends Plugin {
         $colour_map = ['#e01e5a', '#e38200', '#2eb67d', '#439fe0'];
         $colour = $colour_map[$urg] ?? '#2eb67d';
 
+        /* --- Urgency-to-emoji map (place it here) ------------------- */
+        $urgencyEmoji = [
+            1 => ':rotating_light:',       // Emergency / P0
+            2 => ':large_orange_diamond:', // High / P1
+            3 => ':white_circle:',         // Normal / P2
+            4 => ':white_circle:',         // Low    / P3
+        ];
+        
         // --- Priority whitelist filter ------------------------------------
         $allowed = $this->getConfig(self::$pluginInstance)->get('priority-whitelist');
         if (is_array($allowed) && $allowed) {
@@ -200,14 +208,6 @@ class SlackPlugin extends Plugin {
             'text' => [
               'type' => 'mrkdwn',
               // 🔴🟠🟢 show coloured emoji per urgency
-                /* --- Urgency-to-emoji map ------------------------------------ */
-                $urgencyEmoji = [
-                    1 => ':rotating_light:',       // Emergency / P0
-                    2 => ':large_orange_diamond:', // High / P1
-                    3 => ':white_circle:',         // Normal / P2
-                    4 => ':white_circle:',         // Low  / P3
-                ];
-                
                 /* --- Header line --------------------------------------------- */
                 'text' => sprintf(
                     '%s *%s P%d* – <%s|%s>',
