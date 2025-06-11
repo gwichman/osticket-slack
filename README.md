@@ -10,7 +10,7 @@ This plugin uses CURL and was designed/tested with osTicket-1.18.2, PHP 8.3
 
 |  |  |
 |--|--|
-| ![card](docs/slack_card.png) | **Card highlights**<br>• urgency emoji 🔴🟠<br>• bold priority + subject link<br>• requester & department<br>• first 500 chars quoted<br>• **View Ticket** button<br>• coloured stripe (*fuchsia when overdue*) |
+| ![card](slack_card.png) | **Card highlights**<br>• urgency emoji 🔴🟠<br>• bold priority + subject link<br>• requester & department<br>• first 500 chars quoted<br>• **View Ticket** button<br>• coloured stripe (*fuchsia when overdue*) |
 
 ## What’s new in this fork
 
