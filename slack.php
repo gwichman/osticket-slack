@@ -145,6 +145,9 @@ class SlackPlugin extends Plugin {
     function sendToSlack(Ticket $ticket, $heading, $body, $colour = 'good') {
 
         global $ost, $cfg;
+
+        $baseUrl   = rtrim($cfg->getUrl(), '/');          // ensure no trailing slash
+        $ticketUrl = $baseUrl . '/scp/tickets.php?id=' . $ticket->getId();
     
         /* Debug probe (works in CLI and FPM) */
         if (self::DEBUG) {
@@ -216,18 +219,18 @@ class SlackPlugin extends Plugin {
             'type' => 'section',
             'text' => [
               'type' => 'mrkdwn',
-              // 🔴🟠🟢 show coloured emoji per urgency
+                // 🔴🟠🟢 show coloured emoji per urgency
                 /* --- Header line --------------------------------------------- */
                 'text' => sprintf(
                     '%s *%s P%d* – <%s|%s>',
                     // Emoji per priority:
                     $urgencyEmoji[$urgency] ?? '',
                     // Priority label:
-                    $ticket->getPriority() ? ucfirst($ticket->getPriority()->priority) : 'Unknown',
+                    ucfirst($ticket->getPriority()->priority),
                     // P-number (0-based):
                     $urgency - 1,
                     // Link:
-                    $cfg->getUrl() . 'scp/tickets.php?id=' . $ticket->getId(),
+                    $ticketUrl,
                     $ticket->getSubject()
                 )
             ]
@@ -253,7 +256,7 @@ class SlackPlugin extends Plugin {
             'elements' => [[
               'type' => 'button',
               'text' => ['type'=>'plain_text','text'=>'View Ticket'],
-              'url'  => $cfg->getUrl().'scp/tickets.php?id='.$ticket->getId()
+              'url'  => $ticketUrl
             ]]
           ]
         ];
