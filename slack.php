@@ -53,6 +53,12 @@ class SlackPlugin extends Plugin {
      * @return type
      */
     function onTicketCreated(Ticket $ticket) {
+        file_put_contents(
+            '/tmp/slack_dbg.log',
+            date('[Y-m-d H:i:s] ') . "[SLACK-DBG] onTicketCreated  T#{$ticket->getId()}\n",
+            FILE_APPEND
+        );
+
         global $cfg;
         if (!$cfg instanceof OsticketConfig) {
             error_log("Slack plugin called too early.");
@@ -73,7 +79,6 @@ class SlackPlugin extends Plugin {
                 , $ticket->getNumber()
                 , __("created"));
         $this->sendToSlack($ticket, $heading, $plaintext);
-        error_log('[SLACK-DBG] onTicketCreated fired for T#' . $ticket->getId());
     }
 
     /**
@@ -85,7 +90,14 @@ class SlackPlugin extends Plugin {
      */
     function onTicketUpdated($obj) {
         global $cfg;
-    
+
+        file_put_contents(
+            '/tmp/slack_dbg.log',
+            date('[Y-m-d H:i:s] ') . "[SLACK-DBG] onTicketUpdated obj=" .
+                (is_object($obj) ? get_class($obj) : gettype($obj)) . "\n",
+            FILE_APPEND
+        );
+
         /* --- ThreadEntry (a reply/note) --- */
         if ($obj instanceof ThreadEntry) {
             // Original logic unchanged
@@ -113,7 +125,6 @@ class SlackPlugin extends Plugin {
     
             $this->sendToSlack($ticket, $heading, '', 'warning');
         }
-        error_log('[SLACK-DBG] onTicketUpdated fired – obj=' . get_class($obj));
     }
 
     /**
@@ -128,15 +139,17 @@ class SlackPlugin extends Plugin {
      * @throws \Exception
      */
     function sendToSlack(Ticket $ticket, $heading, $body, $colour = 'good') {
+
+        global $ost, $cfg;
+        
         if ($ost instanceof osTicket) {
-            $ost->logDebug('Slack-DBG',
-                sprintf('sendToSlack called for T#%d (%s) by %s – mode=%s',
-                        $ticket->getId(), $ticket->getPriority()->priority,
-                        debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,1)[0]['function'],
-                        $colour));
+            file_put_contents(
+                '/tmp/slack_dbg.log',
+                date('[Y-m-d H:i:s] ') . "[SLACK-DBG] sendToSlack begin T#{$ticket->getId()}\n",
+                FILE_APPEND
+            );
         }
         
-        global $ost, $cfg;
         if (!$ost instanceof osTicket || !$cfg instanceof OsticketConfig) {
             error_log("Slack plugin called too early.");
             return;
@@ -265,10 +278,20 @@ class SlackPlugin extends Plugin {
             );
 
             // Actually send the payload to slack:
+            file_put_contents(
+                '/tmp/slack_dbg.log',
+                date('[Y-m-d H:i:s] ') . "[SLACK-DBG] curl_exec finished\n",
+                FILE_APPEND
+            );
             if (curl_exec($ch) === false) {
                 throw new \Exception($url . ' - ' . curl_error($ch));
             } else {
                 $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                file_put_contents(
+                    '/tmp/slack_dbg.log',
+                    date('[Y-m-d H:i:s] ') . "[SLACK-DBG] HTTP {$statusCode}\n",
+                    FILE_APPEND
+                );
                 if ($statusCode != '200') {
                     throw new \Exception(
                     'Error sending to: ' . $url
