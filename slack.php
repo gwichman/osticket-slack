@@ -200,9 +200,20 @@ class SlackPlugin extends Plugin {
             'text' => [
               'type' => 'mrkdwn',
               // 🔴🟠🟢 show coloured emoji per urgency
+                /* --- Urgency-to-emoji map ------------------------------------ */
+                $urgencyEmoji = [
+                    1 => ':rotating_light:',       // Emergency / P0
+                    2 => ':large_orange_diamond:', // High / P1
+                    3 => ':white_circle:',         // Normal / P2
+                    4 => ':white_circle:',         // Low  / P3
+                ];
+                
+                /* --- Header line --------------------------------------------- */
                 'text' => sprintf(
-                    '*%s P%d* – <%s|%s>',
-                    // Priority name:
+                    '%s *%s P%d* – <%s|%s>',
+                    // Emoji per priority:
+                    $urgencyEmoji[$urgency] ?? '',
+                    // Priority label:
                     $ticket->getPriority() ? ucfirst($ticket->getPriority()->priority) : 'Unknown',
                     // P-number (0-based):
                     $urgency - 1,
