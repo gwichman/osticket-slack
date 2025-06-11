@@ -88,3 +88,8 @@ If you improve the plugin (new events, Teams/Discord version, etc.) please link 
 | 0.3 | 2025-06-10 | initial fork from **clonemeagain/osticket-slack** |
 | 0.2 | 2016-12-17 | upstream: subject-regex filter |
 | 0.1 | 2016-06-08 | first public release |
+
+
+## Priority whitelist feature
+
+![config](plugin_instance_config.png)
