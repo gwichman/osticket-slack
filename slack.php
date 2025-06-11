@@ -169,14 +169,13 @@ class SlackPlugin extends Plugin {
 
         // --- Priority whitelist filter ------------------------------------
         $allowed = $this->getConfig(self::$pluginInstance)->get('priority-whitelist');
-        /*  If the admin selected one or more priorities and the current
-            ticket’s priority id isn’t in that list, bail out silently.      */
         if (is_array($allowed) && $allowed) {
-            if (!in_array($ticket->getPriorityId(), $allowed)) {
-                return;   // skip – not a whitelisted priority
+            // array_keys() gives us [ '4', '3' ] — the IDs
+            if (!in_array($ticket->getPriorityId(), array_keys($allowed))) {
+                return;   // skip — priority not whitelisted
             }
         }
-        
+       
         // Check the subject, see if we want to filter it.
         $regex_subject_ignore = $this->getConfig(self::$pluginInstance)->get('slack-regex-subject-ignore');
         // Filter on subject, and validate regex:
