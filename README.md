@@ -2,17 +2,30 @@
 
 osTicket-slack
 ==============
-An plugin for [osTicket](https://osticket.com) which posts notifications to a [Slack](https://slack.com) channel.
-
-Originally forked from: [https://github.com/thammanna/osticket-slack](https://github.com/thammanna/osticket-slack).
+A plugin for [osTicket](https://osticket.com) which posts notifications to a [Slack](https://slack.com) channel.
 
 Info
 ------
-This plugin uses CURL and was designed/tested with osTicket-1.10.1
+This plugin uses CURL and was designed/tested with osTicket-1.18.2, PHP 8.3
+
+|  |  |
+|--|--|
+| ![card](docs/slack_card.png) | **Card highlights**<br>• urgency emoji 🔴🟠<br>• bold priority + subject link<br>• requester & department<br>• first 500 chars quoted<br>• **View Ticket** button<br>• coloured stripe (*fuchsia when overdue*) |
+
+## What’s new in this fork
+
+* **Priority whitelist** – choose exactly which priorities trigger Slack.  
+* **Block-Kit layout** instead of legacy attachments.  
+* **Urgency emoji & colour map.**  
+* PHP-8 compatible.
+
+---
 
 ## Requirements
-- php_curl
-- A slack account
+
+* osTicket 1.17 or 1.18  
+* PHP `curl` extension  
+* Slack workspace with an **Incoming Webhook**
 
 ## Install
 --------
@@ -56,17 +69,23 @@ Note: This works very well, but may not be as smooth as Slack is natively.
 ## Test!
 Create a ticket!
 
-You should see something like the following appear in your Slack channel:
-
-![slack-new-ticket](https://user-images.githubusercontent.com/5077391/31572647-923e07b0-b0f6-11e7-9515-98205d6f800f.png)
-
-When a user replies, you'll get something like:
-
-![slack-reply](https://user-images.githubusercontent.com/5077391/31572648-9279eb18-b0f6-11e7-97da-9a9c63a200d4.png)
-
 Notes, Replies from Agents and System messages shouldn't appear, usernames are links to the user's page 
 in osTicket, the Ticket subject is a link to the ticket, as is the ticket ID. 
 
-## Adding pull's from original repo:
- +0.2 - 17 december 2016
- +[feature] "Ignore when subject equals regex" by @ramonfincken
+## Contributing
+
+- PRs welcome – please target the main branch.
+- Open an issue for bugs or feature requests.
+- MIT licence like the original project.
+
+If you improve the plugin (new events, Teams/Discord version, etc.) please link back so others can find your fork.
+
+
+## Version history
+
+| Version | Date&nbsp;(YYYY-MM-DD) | Highlights |
+|---------|-----------------------|------------|
+| 0.4 | 2025-06-11 | priority whitelist, Block-Kit layout, urgency colours |
+| 0.3 | 2025-06-10 | initial fork from **clonemeagain/osticket-slack** |
+| 0.2 | 2016-12-17 | upstream: subject-regex filter |
+| 0.1 | 2016-06-08 | first public release |
