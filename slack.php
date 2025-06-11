@@ -10,6 +10,9 @@ require_once('config.php');
 
 class SlackPlugin extends Plugin {
 
+    /** Turn on verbose debug logging to /tmp/slack_dbg.log */
+    const DEBUG = false;
+    
     var $config_class = "SlackPluginConfig";
 
     static $pluginInstance = null;
@@ -50,11 +53,13 @@ class SlackPlugin extends Plugin {
      * @return type
      */
     function onTicketCreated(Ticket $ticket) {
-        file_put_contents(
-            '/tmp/slack_dbg.log',
-            date('[Y-m-d H:i:s] ') . "[SLACK-DBG] onTicketCreated  T#{$ticket->getId()}\n",
-            FILE_APPEND
-        );
+        if (self::DEBUG) {
+            file_put_contents(
+                '/tmp/slack_dbg.log',
+                date('[Y-m-d H:i:s] ') . "[SLACK-DBG] onTicketCreated  T#{$ticket->getId()}\n",
+                FILE_APPEND
+            );
+        }
 
         global $cfg;
         if (!$cfg instanceof OsticketConfig) {
@@ -88,12 +93,14 @@ class SlackPlugin extends Plugin {
     function onTicketUpdated($obj) {
         global $cfg;
 
-        file_put_contents(
-            '/tmp/slack_dbg.log',
-            date('[Y-m-d H:i:s] ') . "[SLACK-DBG] onTicketUpdated obj=" .
-                (is_object($obj) ? get_class($obj) : gettype($obj)) . "\n",
-            FILE_APPEND
-        );
+        if (self::DEBUG) {
+            file_put_contents(
+                '/tmp/slack_dbg.log',
+                date('[Y-m-d H:i:s] ') . "[SLACK-DBG] onTicketUpdated obj=" .
+                    (is_object($obj) ? get_class($obj) : gettype($obj)) . "\n",
+                FILE_APPEND
+            );
+        }
 
         /* --- ThreadEntry (a reply/note) --- */
         if ($obj instanceof ThreadEntry) {
@@ -140,11 +147,13 @@ class SlackPlugin extends Plugin {
         global $ost, $cfg;
     
         /* Debug probe (works in CLI and FPM) */
-        file_put_contents(
-            '/tmp/slack_dbg.log',
-            date('[Y-m-d H:i:s] ') . "[SLACK-DBG] sendToSlack begin T#{$ticket->getId()}\n",
-            FILE_APPEND
-        );
+        if (self::DEBUG) {
+            file_put_contents(
+                '/tmp/slack_dbg.log',
+                date('[Y-m-d H:i:s] ') . "[SLACK-DBG] sendToSlack begin T#{$ticket->getId()}\n",
+                FILE_APPEND
+            );
+        }
     
         /* Only cfg is mandatory — $ost may be null in CLI */
         if (!$cfg instanceof OsticketConfig) {
@@ -285,20 +294,24 @@ class SlackPlugin extends Plugin {
             );
 
             // Actually send the payload to slack:
-            file_put_contents(
-                '/tmp/slack_dbg.log',
-                date('[Y-m-d H:i:s] ') . "[SLACK-DBG] curl_exec finished\n",
-                FILE_APPEND
-            );
+            if (self::DEBUG) {
+                file_put_contents(
+                    '/tmp/slack_dbg.log',
+                    date('[Y-m-d H:i:s] ') . "[SLACK-DBG] curl_exec finished\n",
+                    FILE_APPEND
+                );
+            }
             if (curl_exec($ch) === false) {
                 throw new \Exception($url . ' - ' . curl_error($ch));
             } else {
                 $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                file_put_contents(
-                    '/tmp/slack_dbg.log',
-                    date('[Y-m-d H:i:s] ') . "[SLACK-DBG] HTTP {$statusCode}\n",
-                    FILE_APPEND
-                );
+                if (self::DEBUG) {
+                    file_put_contents(
+                        '/tmp/slack_dbg.log',
+                        date('[Y-m-d H:i:s] ') . "[SLACK-DBG] HTTP {$statusCode}\n",
+                        FILE_APPEND
+                    );
+                }
                 if ($statusCode != '200') {
                     throw new \Exception(
                     'Error sending to: ' . $url
