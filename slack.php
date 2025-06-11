@@ -263,9 +263,11 @@ class SlackPlugin extends Plugin {
         
         // // Build the payload with the formatted data:
         $payload = [
-          'blocks' => $blocks,
-          // keep legacy colour so old mobile clients still show a stripe
-          'attachments' => [[ 'color' => $colour ]]
+          'blocks'      => $blocks,
+          'attachments' => [[
+              'color'    => $colour,
+              'fallback' => ' '   // <-- add this line
+          ]],
         ];
 
         // Add a field for tasks if there are open ones
