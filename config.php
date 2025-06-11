@@ -89,8 +89,10 @@ class SlackPluginConfig extends PluginConfig {
             'message-template'           => new TextareaField([
                 'label'         => $__('Message Template'),
                 'hint'          => $__('The main text part of the Slack message, uses Ticket Variables, for what the user typed, use variable: %{slack_safe_message}'),
-                // "<%{url}/scp/tickets.php?id=%{ticket.id}|%{ticket.subject}>\n" // Already included as Title
-                'default'       => "%{ticket.name.full} (%{ticket.email}) in *%{ticket.dept}* _%{ticket.topic}_\n\n```%{slack_safe_message}```",
+                'default' => "*:rotating_light: P%{ticket.priority_urgency_minus1} – <%{url}/scp/tickets.php?id=%{ticket.id}|%{ticket.subject}>*\n".
+                             "by %{ticket.name.full} · %{ticket.dept}\n\n".
+                             "```%{slack_safe_message_200}```",
+
                 'configuration' => [
                     'html' => FALSE,
                 ]
