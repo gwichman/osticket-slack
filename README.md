@@ -28,10 +28,10 @@ This plugin uses CURL and was designed/tested with osTicket-1.18.2, PHP 8.3
 * Slack workspace with an **Incoming Webhook**
 
 ## Install
---------
+
 1. Clone this repo or download the zip file and place the contents into your `include/plugins` folder.
 1. Now the plugin needs to be enabled & configured, so login to osTicket, select "Admin Panel" then "Manage -> Plugins" you should be seeing the list of currently installed plugins.
-1. Click on `Slack Notifier` and paste your Slack Endpoint URL into the box (Slack setup instructions below). 
+1. Click on `Slack Notifier` and paste your Slack Endpoint URL into the box (Slack setup instructions below).
 1. Click `Save Changes`! (If you get an error about curl, you will need to install the Curl module for PHP). 
 1. After that, go back to the list of plugins and tick the checkbox next to "Slack Notifier" and select the "Enable" button.
 
@@ -79,7 +79,6 @@ in osTicket, the Ticket subject is a link to the ticket, as is the ticket ID.
 - MIT licence like the original project.
 
 If you improve the plugin (new events, Teams/Discord version, etc.) please link back so others can find your fork.
-
 
 ## Version history
 
