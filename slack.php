@@ -124,11 +124,13 @@ class SlackPlugin extends Plugin {
      * @throws \Exception
      */
     function sendToSlack(Ticket $ticket, $heading, $body, $colour = 'good') {
-        $ost->logDebug('Slack-DBG',
-            sprintf('sendToSlack called for T#%d (%s) by %s – mode=%s',
-                    $ticket->getId(), $ticket->getPriority()->priority,
-                    debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,1)[0]['function'],
-                    $colour));
+        if ($ost instanceof osTicket) {
+            $ost->logDebug('Slack-DBG',
+                sprintf('sendToSlack called for T#%d (%s) by %s – mode=%s',
+                        $ticket->getId(), $ticket->getPriority()->priority,
+                        debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,1)[0]['function'],
+                        $colour));
+        }
         
         global $ost, $cfg;
         if (!$ost instanceof osTicket || !$cfg instanceof OsticketConfig) {
@@ -137,7 +139,9 @@ class SlackPlugin extends Plugin {
         }
         $url = $this->getConfig(self::$pluginInstance)->get('slack-webhook-url');
         if (!$url) {
-            $ost->logError('Slack Plugin not configured', 'You need to read the Readme and configure a webhook URL before using this.');
+            if ($ost instanceof osTicket) {
+                $ost->logError('Slack Plugin not configured', 'You need to read the Readme and configure a webhook URL before using this.');
+            }
         }
 
         /* Fancy colours based on urgency ----------------------------- */
@@ -160,8 +164,9 @@ class SlackPlugin extends Plugin {
         $regex_subject_ignore = $this->getConfig(self::$pluginInstance)->get('slack-regex-subject-ignore');
         // Filter on subject, and validate regex:
         if ($regex_subject_ignore && preg_match("/$regex_subject_ignore/i", $ticket->getSubject())) {
-            $ost->logDebug('Ignored Message', 'Slack notification was not sent because the subject (' . $ticket->getSubject() . ') matched regex (' . htmlspecialchars($regex_subject_ignore) . ').');
-            return;
+            if ($ost instanceof osTicket) {
+                $ost->logDebug('Ignored Message', 'Slack notification was not sent because the subject (' . $ticket->getSubject() . ') matched regex (' . htmlspecialchars($regex_subject_ignore) . ').');
+            }
         }
 
         $heading = $this->format_text($heading);
@@ -268,7 +273,9 @@ class SlackPlugin extends Plugin {
                 }
             }
         } catch (\Exception $e) {
-            $ost->logError('Slack posting issue!', $e->getMessage(), true);
+            if ($ost instanceof osTicket) {
+                $ost->logError('Slack posting issue!', $e->getMessage(), true);
+            }
             error_log('Error posting to Slack. ' . $e->getMessage());
         } finally {
             curl_close($ch);
