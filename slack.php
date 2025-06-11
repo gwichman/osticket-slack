@@ -41,6 +41,8 @@ class SlackPlugin extends Plugin {
             Signal::connect('ticket.updated',      array($this, 'onTicketUpdated'));
         }
         // Tasks? Signal::connect('task.created',array($this,'onTaskCreated'));
+        error_log('[SLACK-DBG] bootstrap done – updateTypes='
+          . $this->getConfig(self::$pluginInstance)->get('slack-update-types'));
     }
 
     /**
@@ -71,6 +73,7 @@ class SlackPlugin extends Plugin {
                 , $ticket->getNumber()
                 , __("created"));
         $this->sendToSlack($ticket, $heading, $plaintext);
+        error_log('[SLACK-DBG] onTicketCreated fired for T#' . $ticket->getId());
     }
 
     /**
@@ -110,6 +113,7 @@ class SlackPlugin extends Plugin {
     
             $this->sendToSlack($ticket, $heading, '', 'warning');
         }
+        error_log('[SLACK-DBG] onTicketUpdated fired – obj=' . get_class($obj));
     }
 
     /**
