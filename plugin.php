@@ -2,10 +2,10 @@
 
 return array(
     'id'          => 'osticket:slack',
-    'version'     => '0.2',
-    'name'        => 'Slack notifier',
+    'version'     => '0.3',
+    'name'        => 'Slack Notifier',
     'author'      => 'Thammanna Jammada',
     'description' => 'Notify Slack on new ticket.',
-    'url'         => 'https://github.com/thammanna/osticket-slack',
+    'url'         => 'https://github.com/gwichman/osticket-slack',
     'plugin'      => 'slack.php:SlackPlugin',
 );
