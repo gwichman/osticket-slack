@@ -40,9 +40,6 @@ class SlackPlugin extends Plugin {
             Signal::connect('threadentry.created', array($this, 'onTicketUpdated'));
             Signal::connect('ticket.updated',      array($this, 'onTicketUpdated'));
         }
-        // Tasks? Signal::connect('task.created',array($this,'onTaskCreated'));
-        error_log('[SLACK-DBG] bootstrap done – updateTypes='
-          . $this->getConfig(self::$pluginInstance)->get('slack-update-types'));
     }
 
     /**
