@@ -124,6 +124,12 @@ class SlackPlugin extends Plugin {
      * @throws \Exception
      */
     function sendToSlack(Ticket $ticket, $heading, $body, $colour = 'good') {
+        $ost->logDebug('Slack-DBG',
+            sprintf('sendToSlack called for T#%d (%s) by %s – mode=%s',
+                    $ticket->getId(), $ticket->getPriority()->priority,
+                    debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,1)[0]['function'],
+                    $colour));
+        
         global $ost, $cfg;
         if (!$ost instanceof osTicket || !$cfg instanceof OsticketConfig) {
             error_log("Slack plugin called too early.");
