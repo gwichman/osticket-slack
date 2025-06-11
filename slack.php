@@ -138,16 +138,16 @@ class SlackPlugin extends Plugin {
     function sendToSlack(Ticket $ticket, $heading, $body, $colour = 'good') {
 
         global $ost, $cfg;
-        
-        if ($ost instanceof osTicket) {
-            file_put_contents(
-                '/tmp/slack_dbg.log',
-                date('[Y-m-d H:i:s] ') . "[SLACK-DBG] sendToSlack begin T#{$ticket->getId()}\n",
-                FILE_APPEND
-            );
-        }
-        
-        if (!$ost instanceof osTicket || !$cfg instanceof OsticketConfig) {
+    
+        /* Debug probe (works in CLI and FPM) */
+        file_put_contents(
+            '/tmp/slack_dbg.log',
+            date('[Y-m-d H:i:s] ') . "[SLACK-DBG] sendToSlack begin T#{$ticket->getId()}\n",
+            FILE_APPEND
+        );
+    
+        /* Only cfg is mandatory — $ost may be null in CLI */
+        if (!$cfg instanceof OsticketConfig) {
             error_log("Slack plugin called too early.");
             return;
         }
